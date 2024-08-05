@@ -867,3 +867,29 @@ mod serde {
         }
     }
 }
+
+#[cfg(feature = "bincode")]
+mod bincode {
+    use crate::SmolStr;
+    use alloc::string::String;
+
+    impl bincode::Encode for SmolStr {
+        fn encode<E: bincode::enc::Encoder>(&self, encoder: &mut E) -> Result<(), bincode::error::EncodeError> {
+            self.as_str().encode(encoder)
+        }
+    }
+
+    impl<'d> bincode::BorrowDecode<'d> for SmolStr {
+        fn borrow_decode<D: bincode::de::BorrowDecoder<'d>>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+            let s = <&str>::borrow_decode(decoder)?;
+            Ok(SmolStr::from(s))
+        }
+    }
+
+    impl bincode::Decode for SmolStr {
+        fn decode<D: bincode::de::Decoder>(decoder: &mut D) -> Result<Self, bincode::error::DecodeError> {
+            let s = String::decode(decoder)?;
+            Ok(SmolStr::from(s))
+        }
+    }
+}
